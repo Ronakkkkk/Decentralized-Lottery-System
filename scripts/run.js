@@ -1,46 +1,53 @@
+
+
+
 const main = async () => {
-    const waveContractFactory = await hre.ethers.getContractFactory("WavePortal");
-    const waveContract = await waveContractFactory.deploy({
-      value: hre.ethers.utils.parseEther("0.1"),
-    });
-    await waveContract.deployed();
-    console.log("Contract addy:", waveContract.address);
+  try {
+    const lottryContractFactory = await hre.ethers.getContractFactory("DecentralizedLottery");
+  const minimumBet = ethers.parseEther("0.01");
+  const durationInBlocks = 10;
   
-    let contractBalance = await hre.ethers.provider.getBalance(
-      waveContract.address
-    );
-    console.log(
-      "Contract balance:",
-      hre.ethers.utils.formatEther(contractBalance)
-    );
+  const lotterycontract = await lottryContractFactory.deploy(minimumBet, durationInBlocks, {
+    value: ethers.parseEther("0.01")
+  });
+
+ await lotterycontract.deployed();
   
-    /*
-     * Let's try two waves now
-     */
-    const waveTxn = await waveContract.wave("This is wave #1");
-    await waveTxn.wait();
-  
-    const waveTxn2 = await waveContract.wave("This is wave #2");
-    await waveTxn2.wait();
-  
-    contractBalance = await hre.ethers.provider.getBalance(waveContract.address);
-    console.log(
-      "Contract balance:",
-      hre.ethers.utils.formatEther(contractBalance)
-    );
-  
-    let allWaves = await waveContract.getAllWaves();
-    console.log(allWaves);
-  };
-  
-  const runMain = async () => {
-    try {
-      await main();
-      process.exit(0);
-    } catch (error) {
-      console.log(error);
-      process.exit(1);
-    }
-  };
-  
-  runMain();
+  console.log("Contract addy:", lotterycontract.address);
+
+  contractBalance = await ethers.provider.getBalance(
+    lotterycontract.address
+  );
+  console.log(
+    "Contract balance:",
+    ethers.utils.formatEther(contractBalance)
+  );
+
+  const enterTxn = await lotterycontract.enterLottery();
+  await enterTxn.wait();
+
+  const pickWinnerTxn = await lotterycontract.pickWinner();
+  await pickWinnerTxn.wait();
+
+   contractBalance = await ethers.provider.getBalance(lotterycontract.address);
+  console.log(
+    "Done, Contract balance:",
+    ethers.utils.formatEther(contractBalance)
+  );
+    
+  } catch (error) {
+    console.error("An error occurred:", error);
+  }
+};
+
+const runMain = async () => {
+  try {
+    await main();
+    process.exit(0);
+  } catch (error) {
+    console.error(error);
+    process.exit(1);
+  }
+};
+
+runMain();
